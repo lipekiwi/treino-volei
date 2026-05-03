@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Treinos — Vôlei</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #07070f;
+    --surface: #0f0f1e;
+    --card: #14142a;
+    --card-hover: #1a1a32;
+    --border: rgba(255,255,255,0.06);
+    --accent: #00e5b0;
+    --accent-dim: rgba(0,229,176,0.12);
+    --accent-dim2: rgba(0,229,176,0.06);
+    --text: #eeeef5;
+    --muted: #7070a0;
+    --muted2: #4a4a70;
+    --push: #5b8fff;
+    --push-dim: rgba(91,143,255,0.12);
+    --lower: #00e5b0;
+    --lower-dim: rgba(0,229,176,0.12);
+    --pull: #b57bff;
+    --pull-dim: rgba(181,123,255,0.12);
+    --aux: #ffb347;
+    --aux-dim: rgba(255,179,71,0.12);
+    --danger: #ff6b6b;
+    --danger-dim: rgba(255,107,107,0.12);
+    --font-display: 'Bebas Neue', sans-serif;
+    --font-body: 'DM Sans', sans-serif;
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  html { background: var(--bg); }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100dvh;
+    overflow-x: hidden;
+  }
+
+  /* ── Header ── */
+  .app-header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 20px 12px;
+  }
+
+  .header-top {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+
+  .app-title {
+    font-family: var(--font-display);
+    font-size: 28px;
+    letter-spacing: 0.04em;
+    color: var(--text);
+    line-height: 1;
+  }
+
+  .app-title span { color: var(--accent); }
+
+  .progress-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .progress-label {
+    font-size: 12px;
+    color: var(--muted);
+    font-weight: 500;
+  }
+
+  .progress-ring-wrap {
+    position: relative;
+    width: 36px;
+    height: 36px;
+  }
+
+  .progress-ring-wrap svg {
+    transform: rotate(-90deg);
+  }
+
+  .progress-ring-bg { stroke: var(--border); stroke-width: 3; fill: none; }
+  .progress-ring-fill {
+    stroke: var(--accent);
+    stroke-width: 3;
+    fill: none;
+    stroke-linecap: round;
+    stroke-dasharray: 88;
+    stroke-dashoffset: 88;
+    transition: stroke-dashoffset 0.4s ease;
+  }
+
+  .progress-pct {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--accent);
+  }
+
+  /* ── Day tabs ── */
+  .day-tabs {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+  }
+
+  .day-tab {
+    padding: 8px 4px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    text-align: center;
+    line-height: 1.2;
+  }
+
+  .day-tab .tab-day { display: block; font-size: 11px; color: var(--muted2); margin-bottom: 1px; }
+  .day-tab .tab-label { display: block; }
+
+  .day-tab.active {
+    background: var(--accent-dim);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .day-tab.active .tab-day { color: rgba(0,229,176,0.6); }
+
+  /* ── Content ── */
+  .content {
+    padding: 20px 16px calc(var(--safe-bottom) + 24px);
+    max-width: 480px;
+    margin: 0 auto;
+  }
+
+  /* ── Day panel ── */
+  .day-panel { display: none; }
+  .day-panel.active { display: block; }
+
+  /* ── Day hero ── */
+  .day-hero {
+    margin-bottom: 20px;
+    padding: 16px;
+    border-radius: 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .day-hero::before {
+    content: '';
+    position: absolute;
+    top: -20px; right: -20px;
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    opacity: 0.08;
+  }
+
+  .day-hero[data-color="push"]::before { background: var(--push); }
+  .day-hero[data-color="lower"]::before { background: var(--lower); }
+  .day-hero[data-color="pull"]::before { background: var(--pull); }
+  .day-hero[data-color="aux"]::before { background: var(--aux); }
+
+  .hero-focus {
+    font-family: var(--font-display);
+    font-size: 22px;
+    letter-spacing: 0.03em;
+    margin-bottom: 6px;
+  }
+
+  .day-hero[data-color="push"] .hero-focus { color: var(--push); }
+  .day-hero[data-color="lower"] .hero-focus { color: var(--lower); }
+  .day-hero[data-color="pull"] .hero-focus { color: var(--pull); }
+  .day-hero[data-color="aux"] .hero-focus { color: var(--aux); }
+
+  .hero-meta { display: flex; gap: 6px; flex-wrap: wrap; }
+
+  .hero-badge {
+    font-size: 11px;
+    font-weight: 500;
+    padding: 3px 9px;
+    border-radius: 99px;
+  }
+
+  .badge-warn { background: var(--danger-dim); color: var(--danger); border: 1px solid rgba(255,107,107,0.2); }
+  .badge-info { background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(0,229,176,0.2); }
+
+  /* ── Section ── */
+  .section { margin-bottom: 24px; }
+
+  .section-title {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 10px;
+    padding-left: 2px;
+  }
+
+  /* ── Exercise card ── */
+  .ex-list { display: flex; flex-direction: column; gap: 8px; }
+
+  .ex-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, transform 0.1s;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+
+  .ex-card:active { transform: scale(0.985); }
+  .ex-card.done { background: var(--accent-dim2); border-color: rgba(0,229,176,0.15); }
+
+  .ex-check {
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 1.5px solid var(--muted2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    margin-top: 1px;
+  }
+
+  .ex-card.done .ex-check {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .ex-check svg { opacity: 0; transform: scale(0.5); transition: all 0.2s ease; }
+  .ex-card.done .ex-check svg { opacity: 1; transform: scale(1); }
+
+  .ex-body { flex: 1; min-width: 0; }
+
+  .ex-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 3px;
+    line-height: 1.3;
+    transition: color 0.2s;
+  }
+
+  .ex-card.done .ex-name { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--muted2); }
+
+  .ex-note {
+    font-size: 12px;
+    color: var(--muted);
+    font-weight: 300;
+    line-height: 1.4;
+    margin-bottom: 8px;
+  }
+
+  .ex-footer { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+
+  .ex-sets {
+    font-size: 12px;
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: 6px;
+    background: rgba(255,255,255,0.06);
+    color: var(--text);
+  }
+
+  .ex-tag {
+    font-size: 11px;
+    font-weight: 400;
+    color: var(--muted);
+  }
+
+  /* ── Reset button ── */
+  .reset-btn {
+    display: block;
+    width: 100%;
+    margin-top: 8px;
+    padding: 13px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.01em;
+  }
+
+  .reset-btn:hover { background: var(--surface); color: var(--text); }
+
+  /* ── Completion banner ── */
+  .complete-banner {
+    display: none;
+    margin-bottom: 16px;
+    padding: 14px 16px;
+    border-radius: 12px;
+    background: var(--accent-dim);
+    border: 1px solid rgba(0,229,176,0.25);
+    text-align: center;
+  }
+
+  .complete-banner.show { display: block; }
+
+  .complete-banner p {
+    font-family: var(--font-display);
+    font-size: 18px;
+    letter-spacing: 0.04em;
+    color: var(--accent);
+  }
+
+  .complete-banner small {
+    font-size: 12px;
+    color: rgba(0,229,176,0.7);
+    font-weight: 300;
+  }
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="header-top">
+    <div class="app-title">TREINO <span>VÔLEI</span></div>
+    <div class="progress-wrap">
+      <span class="progress-label" id="progressLabel">0/0</span>
+      <div class="progress-ring-wrap">
+        <svg width="36" height="36" viewBox="0 0 36 36">
+          <circle class="progress-ring-bg" cx="18" cy="18" r="14"/>
+          <circle class="progress-ring-fill" id="progressRing" cx="18" cy="18" r="14"/>
+        </svg>
+        <div class="progress-pct" id="progressPct">0%</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="day-tabs">
+    <button class="day-tab active" data-day="seg" onclick="switchDay('seg')">
+      <span class="tab-day">SEG</span>
+      <span class="tab-label">Push</span>
+    </button>
+    <button class="day-tab" data-day="qua" onclick="switchDay('qua')">
+      <span class="tab-day">QUA</span>
+      <span class="tab-label">Power</span>
+    </button>
+    <button class="day-tab" data-day="qui" onclick="switchDay('qui')">
+      <span class="tab-day">QUI</span>
+      <span class="tab-label">Pull</span>
+    </button>
+    <button class="day-tab" data-day="sex" onclick="switchDay('sex')">
+      <span class="tab-day">SEX</span>
+      <span class="tab-label">Lower</span>
+    </button>
+  </div>
+</header>
+
+<main class="content" id="mainContent"></main>
+
+<script>
+const workouts = {
+  seg: {
+    focus: "Upper Push",
+    color: "push",
+    badges: [{ text: "Sem pernas — vôlei à noite", type: "warn" }],
+    sections: [
+      {
+        title: "Força e massa",
+        exercises: [
+          { id: "s1", name: "Supino reto com barra", sets: "4 × 6–8", note: "Base de força — transfere para o bloqueio", tag: "Peito" },
+          { id: "s2", name: "Desenvolvimento com halteres em pé", sets: "4 × 8–10", note: "Potência de ombro + estabilidade overhead", tag: "Ombro" },
+          { id: "s3", name: "Crucifixo no cabo", sets: "3 × 12–15", note: "Definição peitoral, amplitude de movimento completa", tag: "Peito" },
+        ]
+      },
+      {
+        title: "Ombros e saúde articular",
+        exercises: [
+          { id: "s4", name: "Elevação lateral com halteres", sets: "4 × 12–15", note: "Largura dos ombros — silhueta atlética", tag: "Ombro" },
+          { id: "s5", name: "Face pull na polia", sets: "3 × 15–20", note: "Manguito rotador — protege ombro de atleta de vôlei", tag: "Ombro" },
+        ]
+      },
+      {
+        title: "Tríceps",
+        exercises: [
+          { id: "s6", name: "Tríceps corda na polia", sets: "3 × 12–15", note: "Definição e força de extensão do cotovelo", tag: "Tríceps" },
+        ]
+      }
+    ]
+  },
+  qua: {
+    focus: "Lower Power + Explosão",
+    color: "lower",
+    badges: [{ text: "Treino mais importante da semana", type: "info" }],
+    sections: [
+      {
+        title: "Força base — potência de salto",
+        exercises: [
+          { id: "q1", name: "Agachamento com barra (back squat)", sets: "4 × 4–5", note: "Pesado — maior produtor de força para o vertical", tag: "Quad / Glúteo" },
+          { id: "q2", name: "Hip thrust com barra", sets: "4 × 10–12", note: "Glúteo máximo = motor principal do salto", tag: "Glúteo" },
+          { id: "q3", name: "Stiff com barra (RDL)", sets: "4 × 8–10", note: "Cadeia posterior — base de explosão", tag: "Posterior" },
+          { id: "q4", name: "Avanço búlgaro (split squat)", sets: "3 × 8 cada", note: "Força unilateral — simetria no salto", tag: "Quad / Glúteo" },
+        ]
+      },
+      {
+        title: "Explosão — adaptação neural",
+        exercises: [
+          { id: "q5", name: "Jump squat com halteres leves", sets: "4 × 6", note: "Máxima velocidade — treina potência, não força", tag: "Explosão" },
+          { id: "q6", name: "Box jump / salto vertical máximo", sets: "3 × 5", note: "Salte o mais alto possível em cada rep", tag: "Explosão" },
+        ]
+      },
+      {
+        title: "Panturrilha",
+        exercises: [
+          { id: "q7", name: "Panturrilha em pé na máquina", sets: "5 × 15–20", note: "Contribui com os últimos centímetros do salto", tag: "Panturrilha" },
+        ]
+      }
+    ]
+  },
+  qui: {
+    focus: "Upper Pull",
+    color: "pull",
+    badges: [],
+    sections: [
+      {
+        title: "Costas — largura e espessura",
+        exercises: [
+          { id: "h1", name: "Barra fixa (pull-up)", sets: "4 × 6–8", note: "Adicione carga se conseguir 8+ reps com o próprio peso", tag: "Dorsal" },
+          { id: "h2", name: "Remada curvada com barra", sets: "4 × 6–8", note: "Espessura do dorsal + romboides — postura de atleta", tag: "Dorsal" },
+          { id: "h3", name: "Puxada na polia (lat pulldown)", sets: "3 × 10–12", note: "Largura do dorsal — enfatize a contração final", tag: "Dorsal" },
+          { id: "h4", name: "Remada unilateral com halter", sets: "3 × 10–12 cada", note: "Corrige assimetrias — equilíbrio no ataque", tag: "Dorsal" },
+        ]
+      },
+      {
+        title: "Bíceps",
+        exercises: [
+          { id: "h5", name: "Rosca direta com barra", sets: "3 × 10–12", note: "Sobrecarga máxima de bíceps", tag: "Bíceps" },
+          { id: "h6", name: "Rosca martelo com halteres", sets: "3 × 10–12", note: "Braquial — braço mais cheio visualmente", tag: "Bíceps" },
+        ]
+      },
+      {
+        title: "Core",
+        exercises: [
+          { id: "h7", name: "Prancha abdominal", sets: "3 × 45–60s", note: "Estabilidade de tronco — transfere para o salto e ataque", tag: "Core" },
+        ]
+      }
+    ]
+  },
+  sex: {
+    focus: "Lower Auxiliar + Core",
+    color: "aux",
+    badges: [{ text: "Leve — vôlei à tarde", type: "warn" }],
+    sections: [
+      {
+        title: "Pernas — volume moderado",
+        exercises: [
+          { id: "x1", name: "Leg press", sets: "3 × 12–15", note: "Sem falha muscular — moderado, não chegar ao limite", tag: "Quad" },
+          { id: "x2", name: "Cadeira extensora", sets: "3 × 12–15", note: "Isolamento de quadríceps — definição da coxa", tag: "Quad" },
+          { id: "x3", name: "Mesa flexora", sets: "3 × 12–15", note: "Equilíbrio muscular e prevenção de lesão", tag: "Posterior" },
+          { id: "x4", name: "Panturrilha sentado na máquina", sets: "4 × 15–20", note: "Sóleo — complementa a panturrilha em pé da quarta", tag: "Panturrilha" },
+        ]
+      },
+      {
+        title: "Core antirotação",
+        exercises: [
+          { id: "x5", name: "Dead bug", sets: "3 × 10 cada", note: "Estabilidade lombar — padrão de movimento seguro", tag: "Core" },
+          { id: "x6", name: "Prancha lateral", sets: "3 × 30s cada", note: "Oblíquos — estabilidade lateral no salto", tag: "Core" },
+        ]
+      }
+    ]
+  }
+};
+
+let state = JSON.parse(localStorage.getItem('treino_state') || '{}');
+let currentDay = 'seg';
+
+function saveState() {
+  localStorage.setItem('treino_state', JSON.stringify(state));
+}
+
+function toggleExercise(id) {
+  state[id] = !state[id];
+  saveState();
+  const card = document.querySelector(`[data-ex="${id}"]`);
+  if (card) card.classList.toggle('done', state[id]);
+  updateProgress();
+}
+
+function updateProgress() {
+  const w = workouts[currentDay];
+  const allEx = w.sections.flatMap(s => s.exercises);
+  const total = allEx.length;
+  const done = allEx.filter(e => state[e.id]).length;
+  const pct = total ? Math.round((done / total) * 100) : 0;
+  const circumference = 88;
+  const offset = circumference - (circumference * pct / 100);
+
+  document.getElementById('progressLabel').textContent = `${done}/${total}`;
+  document.getElementById('progressPct').textContent = `${pct}%`;
+  document.getElementById('progressRing').style.strokeDashoffset = offset;
+
+  const banner = document.getElementById('completeBanner');
+  if (banner) banner.classList.toggle('show', done === total && total > 0);
+}
+
+function renderDay(dayKey) {
+  const w = workouts[dayKey];
+  const allEx = w.sections.flatMap(s => s.exercises);
+
+  const badgesHTML = w.badges.map(b =>
+    `<span class="hero-badge badge-${b.type}">${b.text}</span>`
+  ).join('');
+
+  const sectionsHTML = w.sections.map(sec => {
+    const exHTML = sec.exercises.map(ex => `
+      <div class="ex-card ${state[ex.id] ? 'done' : ''}" data-ex="${ex.id}" onclick="toggleExercise('${ex.id}')">
+        <div class="ex-check">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+            <path d="M2 6l3 3 5-5" stroke="#07070f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="ex-body">
+          <p class="ex-name">${ex.name}</p>
+          <p class="ex-note">${ex.note}</p>
+          <div class="ex-footer">
+            <span class="ex-sets">${ex.sets}</span>
+            <span class="ex-tag">${ex.tag}</span>
+          </div>
+        </div>
+      </div>
+    `).join('');
+
+    return `
+      <div class="section">
+        <div class="section-title">${sec.title}</div>
+        <div class="ex-list">${exHTML}</div>
+      </div>
+    `;
+  }).join('');
+
+  return `
+    <div class="day-panel active" id="panel-${dayKey}">
+      <div class="complete-banner" id="completeBanner">
+        <p>Treino concluído</p>
+        <small>Bom trabalho — descansa para o vôlei!</small>
+      </div>
+      <div class="day-hero" data-color="${w.color}">
+        <div class="hero-focus">${w.focus}</div>
+        <div class="hero-meta">${badgesHTML}</div>
+      </div>
+      ${sectionsHTML}
+      <button class="reset-btn" onclick="resetDay()">Resetar treino do dia</button>
+    </div>
+  `;
+}
+
+function switchDay(dayKey) {
+  currentDay = dayKey;
+  document.querySelectorAll('.day-tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.day === dayKey);
+  });
+  document.getElementById('mainContent').innerHTML = renderDay(dayKey);
+  updateProgress();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function resetDay() {
+  const w = workouts[currentDay];
+  w.sections.flatMap(s => s.exercises).forEach(e => { state[e.id] = false; });
+  saveState();
+  switchDay(currentDay);
+}
+
+switchDay('seg');
+</script>
+</body>
+</html>
